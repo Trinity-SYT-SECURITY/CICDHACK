@@ -1,0 +1,15 @@
+## Security Vulnerability Report
+
+The following issues were found in the codebase:
+
+{findings}
+
+## Source Code
+
+```python
+{source_code}
+```
+{memory}
+{feedback}
+
+Please fix ALL listed vulnerabilities and return the complete updated file.

@@ -1,0 +1,65 @@
+rules:
+  # V1: SQL Injection — f-string 直接插入 SQL
+  - id: vuln-sqli-fstring
+    message: "V1: SQL query built with f-string — SQL injection risk"
+    languages: [python]
+    severity: ERROR
+    metadata: {category: security, vuln_id: V1}
+    pattern-either:
+      - pattern: $DB.execute(f"...")
+      - pattern: $DB.execute(f"...", ...)
+      - pattern: $DB.execute("..." + $VAR)
+      - pattern: $DB.execute("..." + $VAR, ...)
+
+  # V2: Auth Bypass — client-supplied header used as auth gate
+  - id: vuln-client-header-auth
+    message: "V2: Access decision based on client-supplied header — auth bypass risk"
+    languages: [python]
+    severity: ERROR
+    metadata: {category: security, vuln_id: V2}
+    pattern-either:
+      - pattern: |
+          if $X != "admin":
+              raise HTTPException(...)
+      - pattern: |
+          if not $X or $X != "admin":
+              raise HTTPException(...)
+
+  # V3: Path Traversal — os.path.join with user input
+  - id: vuln-path-traversal
+    message: "V3: File path built with user-controlled input — path traversal risk"
+    languages: [python]
+    severity: ERROR
+    metadata: {category: security, vuln_id: V3}
+    pattern-either:
+      - pattern: os.path.join($BASE, $PATH)
+      - pattern: os.path.join($BASE, $MID, $PATH)
+      - pattern: os.path.join($BASE, $A, $B, $PATH)
+
+  # V4: SSRF — httpx.get with URL from request body
+  - id: vuln-ssrf-fetch
+    message: "V4: Outbound HTTP fetch using URL from request payload — SSRF risk"
+    languages: [python]
+    severity: ERROR
+    metadata: {category: security, vuln_id: V4}
+    pattern-either:
+      - pattern: httpx.get($PAYLOAD.url)
+      - pattern: httpx.get($PAYLOAD.url, ...)
+      - pattern: requests.get($PAYLOAD.url)
+      - pattern: requests.get($PAYLOAD.url, ...)
+
+  # V5: Broken Password Reset — UPDATE password without prior token check
+  - id: vuln-unauth-password-reset
+    message: "V5: Password reset without authentication or token verification"
+    languages: [python]
+    severity: ERROR
+    metadata: {category: security, vuln_id: V5}
+    pattern-either:
+      - pattern: $DB.execute("UPDATE users SET password=? WHERE ...", (...))
+      - pattern: |
+          $DB.execute(
+              "UPDATE users SET password=? WHERE ...",
+              (...),
+          )
+      - pattern: $DB.execute("UPDATE users SET password=? WHERE username=?", (...))
+      - pattern: $DB.execute("UPDATE users SET password_hash=? WHERE ...", (...))
